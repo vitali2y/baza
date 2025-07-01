@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Baza Cart Demo</title>
+</head>
+
+<body>
+    <h2>Baza Cart Demo</h2>
+
+    <div>
+        Items: <span data-bind="text: items">0</span><br>
+        Total: $<span data-bind="text: total">0.00</span>
+    </div>
+
+    <button data-action="addItem">Add Item</button>
+    <button data-action="removeItem">Remove Item</button>
+
+    <script>
+        window.cart = {
+            items: 0,
+            total: 0.00,
+            addItem: function () {
+                this.items++;
+                this.total += 10.00;
+            },
+            removeItem: function () {
+                if (this.items > 0) {
+                    this.items--;
+                    this.total -= 10.00;
+                }
+            }
+        };
+    </script>
+    <script src="baza.js" data-model="cart"></script>
+</body>
+
+</html>

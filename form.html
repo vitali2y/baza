@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Baza Form Demo</title>
+    <style>
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div data-bind="visible:hidden" class="panel">
+        <h2 data-bind="text:heading"></h2>
+
+        <div class="form-group">
+            <label>Username: <input type="text" data-bind="value:username; disabled:inputsDisabled"></label>
+            <button data-action="setAdmin" data-bind="disabled:inputsDisabled">Set Admin</button>
+        </div>
+
+        <div class="form-group">
+            <label>Age: <input type="number" data-bind="value:age; disabled:inputsDisabled"></label>
+            <button data-action="increaseAge" data-bind="disabled:inputsDisabled">Increase Age</button>
+        </div>
+
+        <div class="form-group">
+            <label>Rating: <input type="range" min="0" max="100" data-bind="value:rating; disabled:inputsDisabled">
+            </label>
+            <button data-action="setRating" data-bind="disabled:inputsDisabled">Set to 50</button>
+            <span class="range-value" data-bind="text:rating"></span>
+        </div>
+
+        <div class="form-group">
+            <label>
+                <input type="checkbox" data-bind="checked:isApplied; disabled:inputsDisabled">Is Applied?
+                <span data-bind="text:isApplied ? '(Applied)' : '(Not Applied)'"></span>
+            </label>
+            <button data-action="toggleApplied" data-bind="disabled:inputsDisabled">Toggle Applied</button>
+        </div>
+
+        <div class="form-group">
+            <label>Experience:
+                <select data-bind="value:experience; disabled:inputsDisabled">
+                    <option value="frontend">Frontend</option>
+                    <option value="backend">Backend</option>
+                    <option value="db">Database</option>
+                </select>
+            </label>
+        </div>
+    </div>
+    <div>
+        <div class="form-group">
+            <button data-action="toggleHidden">Hide/Unhide</button>
+            <button data-action="changeTitle">Change Title</button>
+            <button data-action="toggleDisabled">Disable/Enable</button>
+        </div>
+
+        <div class="form-group">
+            <button id="showValues">Show Current Values</button>
+            <div class="output" id="currentValues"></div>
+        </div>
+    </div>
+
+    <script>
+        window.model = {
+            username: "Me",
+            age: 25,
+            rating: 50,
+            isApplied: true,
+            experience: "backend",
+            hidden: true,
+            heading: "Baza Form",
+            inputsDisabled: false,
+            setAdmin: function () {
+                this.username = 'Admin';
+            },
+            increaseAge: function () {
+                this.age++;
+            },
+            setRating: function () {
+                this.rating = 50;
+            },
+            toggleApplied: function () {
+                this.isApplied = !this.isApplied;
+            },
+            toggleHidden: function () {
+                this.hidden = !this.hidden;
+            },
+            changeTitle: function () {
+                const newTitle = prompt('New title:', this.heading);
+                if (newTitle) {
+                    this.heading = newTitle;
+                }
+            },
+            toggleDisabled: function () {
+                this.inputsDisabled = !this.inputsDisabled;
+            }
+        };
+
+        function showCurrentValues() {
+            document.getElementById('currentValues').textContent =
+                JSON.stringify(model, null, 2);
+        }
+
+        document.getElementById('showValues').addEventListener('click', showCurrentValues);
+    </script>
+    <script src="baza.js" data-model="model"></script>
+</body>
+
+</html>
