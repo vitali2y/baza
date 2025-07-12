@@ -1,112 +1,116 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
 
 <head>
-    <meta charset="UTF-8">
-    <title>Baza Form Demo</title>
-    <style>
-        .hidden {
-            display: none !important;
-        }
-    </style>
+  <title>Baza - Form Demo</title>
+  <script src="baza.js"></script>
+  <style>
+    .hidden {
+      display: none !important;
+    }
+
+    .panel {
+      border: 1px solid #ccc;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    pre {
+      background: #ecf0f4;
+      padding: .5rem;
+    }
+  </style>
 </head>
 
 <body>
-    <div data-bind="visible:hidden" class="panel">
-        <h2 data-bind="text:heading"></h2>
+  <button onclick="toggleForms()">Toggle forms</button>
 
-        <div class="form-group">
-            <label>Username: <input type="text" data-bind="value:username; disabled:inputsDisabled"></label>
-            <button data-action="setAdmin" data-bind="disabled:inputsDisabled">Set Admin</button>
-        </div>
+  <section id="alice" class="panel">
+    <h2>Alice Form</h2>
+    <form>
+      <label>Name:</label><input type="text" baza-bind="name">
+      <label>Email:</label><input type="email" baza-bind="email"><br />
+      <label>Rating:</label><input type="range" min="0" max="100" baza-bind="rating">
+      <label>Age:</label><input type="number" baza-bind="age" /><br />
+      <label>Applied:</label><input type="checkbox" baza-bind="isApplied">
+      <label>Applied At:</label><input type="date" baza-bind="appliedAt"><br />
+      <label>Experience:</label>
+      <select baza-bind="experience">
+        <option value="frontend">Frontend</option>
+        <option value="backend">Backend</option>
+        <option value="db">Database</option>
+      </select>
+      <label>Gender:</label>
+      <label><input type="radio" value="Male" baza-bind="gender">Male</label>
+      <label><input type="radio" value="Female" baza-bind="gender">Female</label>
+    </form>
 
-        <div class="form-group">
-            <label>Age: <input type="number" data-bind="value:age; disabled:inputsDisabled"></label>
-            <button data-action="increaseAge" data-bind="disabled:inputsDisabled">Increase Age</button>
-        </div>
+    <pre id="dumpAlice"></pre>
+  </section>
 
-        <div class="form-group">
-            <label>Rating: <input type="range" min="0" max="100" data-bind="value:rating; disabled:inputsDisabled">
-            </label>
-            <button data-action="setRating" data-bind="disabled:inputsDisabled">Set to 50</button>
-            <span class="range-value" data-bind="text:rating"></span>
-        </div>
+  <section id="john" class="panel">
+    <h2>John Form</h2>
+    <form>
+      <label>Name:</label><input type="text" baza-bind="name">
+      <label>Email:</label><input type="email" baza-bind="email"><br />
+      <label>Rating:</label><input type="range" min="0" max="100" baza-bind="rating">
+      <label>Age:</label><input type="number" baza-bind="age" /><br />
+      <label>Applied:</label><input type="checkbox" baza-bind="isApplied">
+      <label>Applied At:</label><input type="date" baza-bind="appliedAt"><br />
+      <label>Experience:</label>
+      <select baza-bind="experience">
+        <option value="frontend">Frontend</option>
+        <option value="backend">Backend</option>
+        <option value="db">Database</option>
+      </select>
+      <label>Gender:</label>
+      <label><input type="radio" value="Male" baza-bind="gender">Male</label>
+      <label><input type="radio" value="Female" baza-bind="gender">Female</label>
+    </form>
 
-        <div class="form-group">
-            <label>
-                <input type="checkbox" data-bind="checked:isApplied; disabled:inputsDisabled">Is Applied?
-                <span data-bind="text:isApplied ? '(Applied)' : '(Not Applied)'"></span>
-            </label>
-            <button data-action="toggleApplied" data-bind="disabled:inputsDisabled">Toggle Applied</button>
-        </div>
+    <pre id="dumpJohn"></pre>
+  </section>
 
-        <div class="form-group">
-            <label>Experience:
-                <select data-bind="value:experience; disabled:inputsDisabled">
-                    <option value="frontend">Frontend</option>
-                    <option value="backend">Backend</option>
-                    <option value="db">Database</option>
-                </select>
-            </label>
-        </div>
-    </div>
-    <div>
-        <div class="form-group">
-            <button data-action="toggleHidden">Hide/Unhide</button>
-            <button data-action="changeTitle">Change Title</button>
-            <button data-action="toggleDisabled">Disable/Enable</button>
-        </div>
+  <script>
+    const modelAlice = { name: 'Alice', email: 'alice@alice.com', rating: 70, age: 30, isApplied: false, appliedAt: '2025-08-06', experience: 'backend', gender: 'Female' };
+    const alice = new Baza(modelAlice, '#alice');
+    alice.model.hidden = false;
 
-        <div class="form-group">
-            <button id="showValues">Show Current Values</button>
-            <div class="output" id="currentValues"></div>
-        </div>
-    </div>
+    function renderAlice() { dumpAlice.textContent = JSON.stringify(modelAlice, null, 2); }
 
-    <script>
-        window.model = {
-            username: "Me",
-            age: 25,
-            rating: 50,
-            isApplied: true,
-            experience: "backend",
-            hidden: true,
-            heading: "Baza Form",
-            inputsDisabled: false,
-            setAdmin: function () {
-                this.username = 'Admin';
-            },
-            increaseAge: function () {
-                this.age++;
-            },
-            setRating: function () {
-                this.rating = 50;
-            },
-            toggleApplied: function () {
-                this.isApplied = !this.isApplied;
-            },
-            toggleHidden: function () {
-                this.hidden = !this.hidden;
-            },
-            changeTitle: function () {
-                const newTitle = prompt('New title:', this.heading);
-                if (newTitle) {
-                    this.heading = newTitle;
-                }
-            },
-            toggleDisabled: function () {
-                this.inputsDisabled = !this.inputsDisabled;
-            }
-        };
+    alice.on('name', renderAlice);
+    alice.on('email', renderAlice);
+    alice.on('hidden', renderAlice);
+    alice.on('rating', renderAlice);
+    alice.on('age', renderAlice);
+    alice.on('isApplied', renderAlice);
+    alice.on('appliedAt', renderAlice);
+    alice.on('experience', renderAlice);
+    alice.on('gender', renderAlice);
 
-        function showCurrentValues() {
-            document.getElementById('currentValues').textContent =
-                JSON.stringify(model, null, 2);
-        }
+    renderAlice();
 
-        document.getElementById('showValues').addEventListener('click', showCurrentValues);
-    </script>
-    <script src="baza.js" data-model="model"></script>
+    const modelJohn = { name: 'John', email: 'john@john.com', rating: 30, age: 50, isApplied: false, appliedAt: '2025-09-06', experience: 'frontend', gender: 'Male' };
+    const john = new Baza(modelJohn, '#john');
+
+    function renderJohn() { dumpJohn.textContent = JSON.stringify(modelJohn, null, 2); }
+
+    john.on('name', renderJohn);
+    john.on('email', renderJohn);
+    john.on('hidden', renderJohn);
+    john.on('rating', renderJohn);
+    john.on('age', renderJohn);
+    john.on('isApplied', renderJohn);
+    john.on('appliedAt', renderJohn);
+    john.on('experience', renderJohn);
+    john.on('gender', renderJohn);
+
+    renderJohn();
+
+    function toggleForms() {
+      alice.model.hidden = !alice.model.hidden;
+      john.model.hidden = !john.model.hidden;
+    }
+  </script>
 </body>
-
 </html>

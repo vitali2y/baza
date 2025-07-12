@@ -1,144 +1,107 @@
+'use strict';
+
 /*
- * baza.js - simple two-way data binding lib
- * @version 0.1.0
+ * baza.js - tiny powerful two-way data binding lib
+ * @version 0.2.0
  * @author Vitaliy (Vi+) Yermolenko
  */
 
-(() => {
-    // defining binding handlers
-    const bindingHandlers = {
-        value: (element, value) => {
-            if (element.type === 'checkbox') {
-                element.checked = !!value;
-            } else if (element.type === 'radio') {
-                element.checked = element.value === value;
-            } else {
-                element.value = value !== undefined ? value : '';
-            }
-        },
-        text: (element, value) => {
-            element.textContent = value !== undefined ? value : '';
-        },
-        checked: (element, value) => {
-            if (element.type === 'radio') {
-                element.checked = element.value === value;
-            } else {
-                element.checked = !!value;
-            }
-        },
-        visible: (element, value) => {
-            element.classList.toggle('hidden', !value);
-        },
-        disabled: (element, value) => {
-            element.disabled = !!value;
+class Baza {
+  #root;
+  #listeners;
+  #model;
+
+  constructor(initialModel = {}, rootSelector = 'body') {
+    this.#listeners = {};
+    this.#root = document.querySelector(rootSelector);
+
+    this.#model = new Proxy(initialModel, {
+      set: (target, prop, value) => {
+        const old = target[prop];
+        target[prop] = value;
+        if (old !== value) {
+          this.#syncView(prop);
+          this.#notify(prop, value, old);
         }
-    };
-
-    let model;
-
-    // updatng all bindings when data changes
-    function updateBindings(changedKey) {
-        document.querySelectorAll('[data-bind]').forEach(element => {
-            try {
-                const bindings = element.getAttribute('data-bind').split(';');
-                bindings.forEach(binding => {
-                    const [type, key] = binding.split(':').map(s => s.trim());
-                    if (changedKey === undefined || key === changedKey) {
-                        const handler = bindingHandlers[type];
-                        if (handler) {
-                            handler(element, model[key]);
-                        } else {
-                            console.warn(`no binding handler found for type: ${type}`);
-                        }
-                    }
-                });
-            } catch (error) {
-                console.error("error updating bindings:", error);
-            }
-        });
-    }
-
-    // setting up event listeners for two-way binding
-    function initializeBindings() {
-        document.querySelectorAll('[data-bind]').forEach(element => {
-            try {
-                const bindings = element.getAttribute('data-bind').split(';');
-                bindings.forEach(binding => {
-                    const [type, key] = binding.split(':').map(s => s.trim());
-                    if (type === 'value' || type === 'checked') {
-                        const event = element.type === 'checkbox' || element.type === 'radio' ? 'change' : 'input';
-                        element.addEventListener(event, () => {
-                            try {
-                                if (element.type === 'checkbox') {
-                                    model[key] = element.checked;
-                                } else if (element.type === 'radio' && element.checked) {
-                                    model[key] = element.value;
-                                } else {
-                                    model[key] = element.type === 'number' ?
-                                        Number(element.value) : element.value;
-                                }
-                            } catch (error) {
-                                console.error("error handling input change:", error);
-                            }
-                        });
-                    }
-                });
-            } catch (error) {
-                console.error("error init bindings:", error);
-            }
-        });
-    }
-
-    // centralized action handling
-    function handleAction(action) {
-        if (typeof model[action] === 'function') {
-            model[action]();
-        } else {
-            console.warn(`no action found for: ${action}`);
-        }
-    }
-
-    function attachActionListeners() {
-        document.querySelectorAll('[data-action]').forEach(button => {
-            button.addEventListener('click', () => {
-                const action = button.dataset.action;
-                handleAction(action);
-            });
-        });
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        const script = document.querySelector('script[src="baza.js"]');
-        const modelName = script.dataset.model;
-
-        if (!modelName) {
-            console.error("no data-model attr found on script tag");
-            return;
-        }
-
-        let initialModel = window[modelName];
-
-        if (!initialModel) {
-            console.error(`model "${modelName}" not found in window scope`);
-            return;
-        }
-
-        // proxy the model to trigger updates
-        model = new Proxy(initialModel, {
-            set(target, key, value) {
-                if (target[key] !== value) {
-                    target[key] = value;
-                    updateBindings(key);
-                    return true;
-                }
-                return true;
-            }
-        });
-
-        window[modelName] = model;
-
-        initializeBindings();
-        attachActionListeners();
-        updateBindings();
+        return true;
+      },
+      get: (target, prop) => target[prop]
     });
-})();
+
+
+    this.#bindAll();
+
+    this.#model.hidden = true;
+  }
+
+
+  on(prop, fn) {
+    (this.#listeners[prop] ||= []).push(fn);
+  }
+
+
+  // user listeners
+  #notify(prop, val, old) {
+    (this.#listeners[prop] || []).forEach(fn => fn(val, old));
+  }
+
+
+  get model() {
+    return this.#model;
+  }
+
+
+  #bindAll() {
+    try {
+      [...this.#root.querySelectorAll('[baza-bind]')].forEach(el => {
+        const prop = el.getAttribute('baza-bind');
+        if (el.type === 'radio') {
+          el.checked = el.value === this.#model[prop];
+          el.addEventListener('change', () => {
+            if (el.checked) this.#model[prop] = el.value;
+          });
+        } else if (el.type === 'checkbox') {
+          el.checked = Boolean(this.#model[prop]);
+          el.addEventListener('change', () => {
+            this.#model[prop] = el.checked;
+          });
+        } else {
+          el.value = this.#model[prop] ?? '';
+          el.addEventListener('input', () => {
+            this.#model[prop] = el.value;
+          });
+        }
+      });
+    } catch (err) {
+      console.error("#bindAll error:", err);
+    }
+  }
+
+  // updating DOM
+  #syncView(prop) {
+    try {
+      [...this.#root.querySelectorAll(`[baza-bind="${prop}"]`)].forEach(el => {
+        if (el.type === 'radio') {
+          el.checked = el.value === this.#model[prop];
+        } else if (el.type === 'checkbox') {
+          el.checked = Boolean(this.#model[prop]);
+        } else {
+          el.value = this.#model[prop] ?? '';
+          if (!/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) {
+            el.textContent = this.#model[prop];
+          }
+        }
+      });
+
+      // toggling .hidden on the whole instance root
+      if (prop === 'hidden') {
+        this.#root.classList.toggle('hidden', Boolean(this.#model.hidden));
+      }
+
+    } catch (err) {
+      console.error("#syncView error:", err);
+    }
+  }
+}
+
+window.Baza = Baza;

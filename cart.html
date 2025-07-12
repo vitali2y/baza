@@ -1,38 +1,71 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
 
 <head>
-    <title>Baza Cart Demo</title>
+  <title>Baza - Cart Demo</title>
+  <script src="baza.js"></script>
+  <style>
+    td,
+    th {
+      border: 1px solid #ccc;
+      padding: .5rem;
+    }
+  </style>
 </head>
 
 <body>
-    <h2>Baza Cart Demo</h2>
+  <h2>Baza - Cart Demo</h2>
 
-    <div>
-        Items: <span data-bind="text: items">0</span><br>
-        Total: $<span data-bind="text: total">0.00</span>
-    </div>
+  <table id="apple">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Qty</th>
+        <th>Price</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Apple</td>
+        <td><input type="number" min="0" baza-bind="appleQty" /></td>
+        <td>$<span baza-bind="applePrice">1.2</span></td>
+        <td>$<span baza-bind="appleTotal">0</span></td>
+      </tr>
+    </tbody>
+  </table>
 
-    <button data-action="addItem">Add Item</button>
-    <button data-action="removeItem">Remove Item</button>
+  <table id="banana">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Qty</th>
+        <th>Price</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Banana</td>
+        <td><input type="number" min="0" baza-bind="bananaQty" /></td>
+        <td>$<span baza-bind="bananaPrice">0.8</span></td>
+        <td>$<span baza-bind="bananaTotal">0</span></td>
+      </tr>
+    </tbody>
+  </table>
 
-    <script>
-        window.cart = {
-            items: 0,
-            total: 0.00,
-            addItem: function () {
-                this.items++;
-                this.total += 10.00;
-            },
-            removeItem: function () {
-                if (this.items > 0) {
-                    this.items--;
-                    this.total -= 10.00;
-                }
-            }
-        };
-    </script>
-    <script src="baza.js" data-model="cart"></script>
+  <script>
+    const appleModel = { appleQty: 0, applePrice: 1.2, appleTotal: 0 };
+    const apple = new Baza(appleModel, '#apple');
+    apple.on('appleQty', () => {
+      apple.model.appleTotal = (apple.model.appleQty * apple.model.applePrice).toFixed(2);
+    });
+
+    const bananaModel = { bananaQty: 0, bananaPrice: 0.8 };
+    const banana = new Baza(bananaModel, '#banana');
+    banana.on('bananaQty', () => {
+      banana.model.bananaTotal = (banana.model.bananaQty * banana.model.bananaPrice).toFixed(2);
+    });
+  </script>
 </body>
-
 </html>
